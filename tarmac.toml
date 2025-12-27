@@ -1,0 +1,10 @@
+name = "game"
+
+# For group uploads, uncomment and set your group ID:
+# upload-to-group-id = 12345678
+
+[[inputs]]
+glob = "assets/**/*.png"
+codegen = true
+codegen-path = "src/shared/Assets.luau"
+codegen-base-path = "assets"

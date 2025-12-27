@@ -1,0 +1,29 @@
+# Downloaded tools
+bin/
+
+# Environment (contains secrets)
+.env
+
+# Build outputs
+*.rbxl
+*.rbxm
+sourcemap.json
+
+# Wally packages
+Packages/
+ServerPackages/
+wally.lock
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+docs/creator-docs/
+# Uncomment if assets should not be tracked:
+tarmac-manifest.toml

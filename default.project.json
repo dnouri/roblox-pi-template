@@ -1,0 +1,39 @@
+{
+  "name": "game",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$path": "src/server"
+    },
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/client"
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Size": [100, 1, 100],
+          "Position": [0, -0.5, 0],
+          "Anchored": true,
+          "Color": [0.388, 0.373, 0.384],
+          "Material": "Concrete"
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Size": [6, 1, 6],
+          "Position": [0, 0.5, 0],
+          "Anchored": true,
+          "Color": [0.639, 0.635, 0.647]
+        }
+      }
+    }
+  }
+}

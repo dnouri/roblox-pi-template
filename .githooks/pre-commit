@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pre-commit hook: runs linting and format checks before each commit
+
+echo "Running pre-commit checks..."
+
+# Run lint and format check
+if ! make check; then
+    echo ""
+    echo "❌ Pre-commit checks failed!"
+    echo ""
+    echo "Fix the issues above, then try committing again."
+    echo "To format automatically: make format"
+    echo "To skip this check (not recommended): git commit --no-verify"
+    exit 1
+fi
+
+echo "✓ Pre-commit checks passed"
