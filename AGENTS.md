@@ -4,7 +4,7 @@
 
 Read existing scripts in `src/` to understand how they work. Integrate with existing patterns.
 
-Consult docs before using Roblox APIs - they change frequently. Run `make setup-docs` if missing.
+Before using a new Roblox API, you must take a look at docs in `docs/creator-docs/` for up-to-date versions and useful patterns.
 
 | Topic | Path |
 |-------|------|
@@ -35,6 +35,18 @@ Use `write` to create new `.luau` files. Use `edit` to modify existing ones. Roj
 | `src/shared/*.luau` | ModuleScript | Wherever required |
 
 `default.project.json` is for static world setup only (baseplate, spawn).
+
+## Skills
+
+Load a skill with `read` when you need detailed instructions for that workflow.
+
+| Skill | Use this to... |
+|-------|----------------|
+| `rojo` | Sync code from filesystem to Studio |
+| `lune` | Run Luau scripts outside Studio (CI/CD, automation) |
+| `roblox-cloud` | Publish, manage datastores, send cross-server messages |
+| `upload-assets` | Upload images, sounds, models to Roblox |
+| `use-assets` | Load models by AssetId at runtime |
 
 ## Common Patterns
 
