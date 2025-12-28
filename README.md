@@ -46,13 +46,31 @@ The code is in your project, ready to customize.
   - **Linux:** Install via [Vinegar](https://github.com/vinegarhq/vinegar): `flatpak install flathub org.vinegarhq.Vinegar`
   - **Windows/Mac:** Download from [roblox.com/create](https://www.roblox.com/create)
 
+> **Platform Note:** This template works on Linux, macOS, and Windows. The setup process auto-detects your OS and downloads the right binaries. macOS users need one extra configuration step (see Setup).
+
 ### 2. Setup
 
-Clone this template and install the tools:
+Clone this template and prepare your environment:
 
 ```bash
 git clone https://github.com/dnouri/roblox-pi-template my-game
 cd my-game
+```
+
+**⚠️ macOS Users:** Before running setup, configure the plugins directory:
+```bash
+# Create .env from the example
+cp .env.example .env
+
+# Edit .env and add this line:
+ROBLOX_PLUGINS_DIR=$HOME/Documents/Roblox/Plugins
+```
+
+> **Note:** On macOS, Roblox Studio uses `~/Documents/Roblox/Plugins/` for plugins, not the Library folder. The setup will fail without this configuration.
+
+Now install the tools:
+
+```bash
 make setup
 ```
 
@@ -78,7 +96,7 @@ Next, open Studio:
 # Linux
 flatpak run org.vinegarhq.Vinegar studio
 
-# Windows/Mac - just open Roblox Studio normally
+# ⚠ Windows/Mac - just open Roblox Studio normally
 ```
 
 Connect Studio to the sync server: go to **Plugins tab → Rojo → Connect**. You should see the baseplate and spawn point appear.
@@ -128,11 +146,14 @@ These queries run directly in Studio. Useful for debugging, but changes don't sa
 
 ## 🌐 Publishing Your Game
 
-Set up your credentials once:
+Set up your credentials in `.env`:
 
 ```bash
+# If you didn't already create .env during setup:
 cp .env.example .env
-# Edit .env with your API key and IDs (pi can help you find them!)
+
+# Add your Roblox API key and game IDs
+# Pi can help you find these values!
 ```
 
 Then publish:
@@ -179,6 +200,11 @@ Pi uses [rbxcloud](https://github.com/Sleitnick/rbxcloud) to upload assets and g
 | [Wally](https://wally.run/) | Package manager |
 
 ## ❓ Troubleshooting
+
+**"Could not detect Roblox plugins directory" error?** 
+- **macOS:** Add `ROBLOX_PLUGINS_DIR=$HOME/Documents/Roblox/Plugins` to your `.env` file
+- **Linux:** The auto-detection should work with Vinegar. If not, find your plugins folder and add it to `.env`
+- **Windows:** Add `ROBLOX_PLUGINS_DIR=C:\Users\YOUR_USERNAME\AppData\Local\Roblox\Plugins` to `.env`
 
 **Sync not working?** Make sure `make serve` is running and shows "listening on port 34872".
 
