@@ -1,11 +1,15 @@
 ---
-name: roblox-assets
-description: Upload images, sounds, and models to Roblox using rbxcloud.
+name: upload-assets
+description: Use this to upload images, sounds, and 3D models to Roblox. Uses Open Cloud API via rbxcloud CLI. Returns AssetIds for use in your game.
 ---
 
-# Roblox Assets Skill
+# Upload Assets Skill
 
-Upload assets using rbxcloud.
+**Use this to:** Upload your own assets (images, audio, 3D models) to Roblox and get AssetIds back.
+
+**How it works:** Uses the Open Cloud API via `rbxcloud` CLI to upload files and retrieve AssetIds.
+
+**Pairs with:** The `use-assets` skill to load your uploaded assets at runtime.
 
 ## Prerequisites
 
@@ -49,10 +53,17 @@ Uploads are async. Check completion:
 
 The response includes `assetId` when done.
 
-## Use in Game
+## Use Uploaded Assets in Game
+
+Once uploaded, store the AssetId and use it:
 
 ```luau
+-- For images/decals
 local decal = Instance.new("Decal")
-decal.Texture = "rbxassetid://123456789"  -- Your asset ID
+decal.Texture = "rbxassetid://123456789"
 decal.Parent = workspace.Part
+
+-- For models, see the use-assets skill
+local InsertService = game:GetService("InsertService")
+local model = InsertService:LoadAsset(123456789)
 ```
