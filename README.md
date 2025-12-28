@@ -50,27 +50,11 @@ The code is in your project, ready to customize.
 
 ### 2. Setup
 
-Clone this template and prepare your environment:
+Clone this template and install the tools:
 
 ```bash
 git clone https://github.com/dnouri/roblox-pi-template my-game
 cd my-game
-```
-
-**⚠️ macOS Users:** Before running setup, configure the plugins directory:
-```bash
-# Create .env from the example
-cp .env.example .env
-
-# Edit .env and add this line:
-ROBLOX_PLUGINS_DIR=$HOME/Documents/Roblox/Plugins
-```
-
-> **Note:** On macOS, Roblox Studio uses `~/Documents/Roblox/Plugins/` for plugins, not the Library folder. The setup will fail without this configuration.
-
-Now install the tools:
-
-```bash
 make setup
 ```
 
@@ -202,9 +186,9 @@ Pi uses [rbxcloud](https://github.com/Sleitnick/rbxcloud) to upload assets and g
 ## ❓ Troubleshooting
 
 **"Could not detect Roblox plugins directory" error?** 
-- **macOS:** Add `ROBLOX_PLUGINS_DIR=$HOME/Documents/Roblox/Plugins` to your `.env` file
-- **Linux:** The auto-detection should work with Vinegar. If not, find your plugins folder and add it to `.env`
-- **Windows:** Add `ROBLOX_PLUGINS_DIR=C:\Users\YOUR_USERNAME\AppData\Local\Roblox\Plugins` to `.env`
+- The setup script auto-detects the plugins directory on all platforms
+- If you get this error, create a `.env` file and set `ROBLOX_PLUGINS_DIR` to your actual plugins location
+- Common locations: `~/Documents/Roblox/Plugins` (macOS), `%LOCALAPPDATA%\Roblox\Plugins` (Windows)
 
 **Sync not working?** Make sure `make serve` is running and shows "listening on port 34872".
 
