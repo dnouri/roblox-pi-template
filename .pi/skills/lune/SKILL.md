@@ -1,11 +1,29 @@
 ---
 name: lune
-description: Lune is a standalone Luau runtime. Use for running scripts outside Studio, automation, testing, and place file manipulation.
+description: Use this to run Luau scripts outside Studio. Automate builds, manipulate place files, run tests, and write CI/CD scripts — all without needing Roblox Studio running.
 ---
 
 # Lune Skill
 
-Lune runs Luau scripts outside of Roblox Studio.
+Lune is a standalone Luau runtime that runs outside of Roblox Studio.
+
+**Use Lune for offline automation:**
+- Manipulate .rbxl/.rbxm files without Studio
+- CI/CD scripts (build, test, deploy)
+- Unit test pure Luau logic (no Roblox services)
+- File processing, HTTP requests, general scripting
+
+**Use `studio_run_code` instead when you need:**
+- Live Studio connection (marketplace search, previews)
+- Roblox services (Players, InsertService, etc.)
+- Debugging objects in a running session
+
+## Setup Type Definitions
+
+Run once to get editor autocomplete for Lune APIs:
+```bash
+./bin/lune setup
+```
 
 ## Commands
 
