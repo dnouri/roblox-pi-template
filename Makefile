@@ -60,7 +60,7 @@ define download
 	@mkdir -p bin
 	curl -fSL -o /tmp/download.zip "$(1)"
 	unzip -o /tmp/download.zip -d bin/
-	chmod +x "$(2)"
+	@test -f "$(2)" && chmod +x "$(2)" || true
 	@rm -f /tmp/download.zip
 endef
 
@@ -88,13 +88,9 @@ bin/wally:
 
 bin/rbx-studio-mcp:
 ifeq ($(UNAME_S),Darwin)
-	@mkdir -p bin
-	curl -fSL -o /tmp/download.zip "https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/macOS-rbx-studio-mcp.zip"
-	unzip -o /tmp/download.zip -d bin/
+	$(call download,https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/macOS-rbx-studio-mcp.zip,bin/rbx-studio-mcp)
 	mv bin/RobloxStudioMCP.app/Contents/MacOS/rbx-studio-mcp bin/rbx-studio-mcp
 	rm -rf bin/RobloxStudioMCP.app
-	chmod +x bin/rbx-studio-mcp
-	@rm -f /tmp/download.zip
 else
 	$(call download,https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/rbx-studio-mcp-$(MCP_OS_SUFFIX).zip,bin/rbx-studio-mcp)
 endif
