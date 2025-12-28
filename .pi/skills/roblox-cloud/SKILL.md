@@ -1,11 +1,16 @@
 ---
 name: roblox-cloud
-description: Roblox Open Cloud API operations using rbxcloud CLI. Use for publishing, datastores, messaging, and universe management.
+description: Use this to publish your game, manage datastores, and send cross-server messages — all from the command line without opening a browser.
 ---
 
-# Roblox Cloud Skill (rbxcloud)
+# Roblox Cloud Skill
 
-rbxcloud provides CLI access to Roblox Open Cloud APIs.
+**Use this for command-line game management:**
+- Publish places without opening Studio or the website
+- Read/write datastore entries for debugging or migrations
+- Send messages to all running servers (announcements, restarts)
+
+**Requires:** Open Cloud API key from https://create.roblox.com/dashboard/credentials
 
 ## Prerequisites
 

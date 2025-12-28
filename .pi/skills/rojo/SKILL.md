@@ -1,11 +1,16 @@
 ---
 name: rojo
-description: Rojo operations for syncing filesystem to Roblox Studio. Use for serving, building, and managing Rojo projects.
+description: Use this to sync code from your filesystem to Studio. Write .luau files locally, see changes instantly in Studio. Enables version control and collaborative development.
 ---
 
 # Rojo Skill
 
-Rojo syncs your filesystem to Roblox Studio in real-time.
+**Use Rojo to write code in your editor** instead of Studio's script editor:
+- Real-time sync — save a file, see it instantly in Studio
+- Version control — all code in .luau files, easy to diff and review
+- Collaborative — multiple developers can work on the same codebase
+
+**This is the foundation of the pi-template workflow.**
 
 ## Prerequisites
 
