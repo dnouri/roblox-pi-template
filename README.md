@@ -46,6 +46,8 @@ The code is in your project, ready to customize.
   - **Linux:** Install via [Vinegar](https://github.com/vinegarhq/vinegar): `flatpak install flathub org.vinegarhq.Vinegar`
   - **Windows/Mac:** Download from [roblox.com/create](https://www.roblox.com/create)
 
+> **Platform Note:** This template works on Linux, macOS, and Windows. The setup process auto-detects your OS and downloads the right binaries. macOS users need one extra configuration step (see Setup).
+
 ### 2. Setup
 
 Clone this template and install the tools:
@@ -78,7 +80,7 @@ Next, open Studio:
 # Linux
 flatpak run org.vinegarhq.Vinegar studio
 
-# Windows/Mac - just open Roblox Studio normally
+# ⚠ Windows/Mac - just open Roblox Studio normally
 ```
 
 Connect Studio to the sync server: go to **Plugins tab → Rojo → Connect**. You should see the baseplate and spawn point appear.
@@ -128,11 +130,14 @@ These queries run directly in Studio. Useful for debugging, but changes don't sa
 
 ## 🌐 Publishing Your Game
 
-Set up your credentials once:
+Set up your credentials in `.env`:
 
 ```bash
+# If you didn't already create .env during setup:
 cp .env.example .env
-# Edit .env with your API key and IDs (pi can help you find them!)
+
+# Add your Roblox API key and game IDs
+# Pi can help you find these values!
 ```
 
 Then publish:
@@ -179,6 +184,11 @@ Pi uses [rbxcloud](https://github.com/Sleitnick/rbxcloud) to upload assets and g
 | [Wally](https://wally.run/) | Package manager |
 
 ## ❓ Troubleshooting
+
+**"Could not detect Roblox plugins directory" error?** 
+- The setup script auto-detects the plugins directory on all platforms
+- If you get this error, create a `.env` file and set `ROBLOX_PLUGINS_DIR` to your actual plugins location
+- Common locations: `~/Documents/Roblox/Plugins` (macOS), `%LOCALAPPDATA%\Roblox\Plugins` (Windows)
 
 **Sync not working?** Make sure `make serve` is running and shows "listening on port 34872".
 

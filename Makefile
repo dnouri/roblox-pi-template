@@ -18,6 +18,31 @@ MCP_SERVER_VERSION := 0.2.2
 -include .env
 ROBLOX_PLUGINS_DIR ?= $(shell ./scripts/detect-plugins-dir.sh 2>/dev/null)
 
+# OS detection
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    # OS_SUFFIX := linux
+    ROJO_OS_SUFFIX := linux-x86_64
+    LUNE_OS_SUFFIX := linux-x86_64
+    SELENE_OS_SUFFIX := linux
+    STYLUA_OS_SUFFIX := linux-x86_64
+    TARMAC_OS_SUFFIX := linux
+    RBXCLOUD_OS_SUFFIX := linux
+    WALLY_OS_SUFFIX := linux
+    MCP_OS_SUFFIX := linux
+endif
+ifeq ($(UNAME_S),Darwin)
+    # OS_SUFFIX := macos
+    ROJO_OS_SUFFIX := macos-aarch64
+    LUNE_OS_SUFFIX := macos-aarch64
+    SELENE_OS_SUFFIX := macos
+    STYLUA_OS_SUFFIX := macos-aarch64
+    TARMAC_OS_SUFFIX := macos
+    RBXCLOUD_OS_SUFFIX := macos
+    WALLY_OS_SUFFIX := macos
+    MCP_OS_SUFFIX := macos
+endif
+
 # Default target
 all: setup
 
@@ -35,34 +60,40 @@ define download
 	@mkdir -p bin
 	curl -fSL -o /tmp/download.zip "$(1)"
 	unzip -o /tmp/download.zip -d bin/
-	chmod +x "$(2)"
+	@test -f "$(2)" && chmod +x "$(2)" || true
 	@rm -f /tmp/download.zip
 endef
 
 # Individual tool targets
 bin/rojo:
-	$(call download,https://github.com/rojo-rbx/rojo/releases/download/v$(ROJO_VERSION)/rojo-$(ROJO_VERSION)-linux-x86_64.zip,bin/rojo)
+	$(call download,https://github.com/rojo-rbx/rojo/releases/download/v$(ROJO_VERSION)/rojo-$(ROJO_VERSION)-$(ROJO_OS_SUFFIX).zip,bin/rojo)
 
 bin/lune:
-	$(call download,https://github.com/lune-org/lune/releases/download/v$(LUNE_VERSION)/lune-$(LUNE_VERSION)-linux-x86_64.zip,bin/lune)
+	$(call download,https://github.com/lune-org/lune/releases/download/v$(LUNE_VERSION)/lune-$(LUNE_VERSION)-$(LUNE_OS_SUFFIX).zip,bin/lune)
 
 bin/selene:
-	$(call download,https://github.com/Kampfkarren/selene/releases/download/$(SELENE_VERSION)/selene-$(SELENE_VERSION)-linux.zip,bin/selene)
+	$(call download,https://github.com/Kampfkarren/selene/releases/download/$(SELENE_VERSION)/selene-$(SELENE_VERSION)-$(SELENE_OS_SUFFIX).zip,bin/selene)
 
 bin/stylua:
-	$(call download,https://github.com/JohnnyMorganz/StyLua/releases/download/v$(STYLUA_VERSION)/stylua-linux-x86_64.zip,bin/stylua)
+	$(call download,https://github.com/JohnnyMorganz/StyLua/releases/download/v$(STYLUA_VERSION)/stylua-$(STYLUA_OS_SUFFIX).zip,bin/stylua)
 
 bin/tarmac:
-	$(call download,https://github.com/Roblox/tarmac/releases/download/v$(TARMAC_VERSION)/tarmac-linux.zip,bin/tarmac)
+	$(call download,https://github.com/Roblox/tarmac/releases/download/v$(TARMAC_VERSION)/tarmac-$(TARMAC_OS_SUFFIX).zip,bin/tarmac)
 
 bin/rbxcloud:
-	$(call download,https://github.com/Sleitnick/rbxcloud/releases/download/v$(RBXCLOUD_VERSION)/rbxcloud-$(RBXCLOUD_VERSION)-linux.zip,bin/rbxcloud)
+	$(call download,https://github.com/Sleitnick/rbxcloud/releases/download/v$(RBXCLOUD_VERSION)/rbxcloud-$(RBXCLOUD_VERSION)-$(RBXCLOUD_OS_SUFFIX).zip,bin/rbxcloud)
 
 bin/wally:
-	$(call download,https://github.com/UpliftGames/wally/releases/download/v$(WALLY_VERSION)/wally-v$(WALLY_VERSION)-linux.zip,bin/wally)
+	$(call download,https://github.com/UpliftGames/wally/releases/download/v$(WALLY_VERSION)/wally-v$(WALLY_VERSION)-$(WALLY_OS_SUFFIX).zip,bin/wally)
 
 bin/rbx-studio-mcp:
-	$(call download,https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/rbx-studio-mcp-linux.zip,bin/rbx-studio-mcp)
+ifeq ($(UNAME_S),Darwin)
+	$(call download,https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/macOS-rbx-studio-mcp.zip,bin/rbx-studio-mcp)
+	mv bin/RobloxStudioMCP.app/Contents/MacOS/rbx-studio-mcp bin/rbx-studio-mcp
+	rm -rf bin/RobloxStudioMCP.app
+else
+	$(call download,https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/rbx-studio-mcp-$(MCP_OS_SUFFIX).zip,bin/rbx-studio-mcp)
+endif
 
 # MCP Plugin (download from same release)
 bin/MCPStudioPlugin.rbxm: bin/rojo
