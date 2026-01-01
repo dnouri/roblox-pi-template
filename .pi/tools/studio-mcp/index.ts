@@ -1,54 +1,64 @@
 /**
- * Studio MCP Tools - Live interaction with Roblox Studio
+ * Studio MCP Tool - Live interaction with Roblox Studio
  *
- * Provides two tools for pi-agent:
- * - studio_run_code: Execute Luau code in the running Studio session
- * - studio_insert_model: Insert models from Roblox marketplace
+ * Provides studio_run_code tool to execute Luau code in the running Studio session.
  *
  * Requires the MCP server (bin/rbx-studio-mcp --http-only) to be running
  * and the MCP plugin installed in Studio.
+ * 
+ * CONTEXT SUPPORT:
+ * - "any": Auto-detect (default) - uses server if playing, edit otherwise
+ * - "edit": Edit mode - query static scene (available even during play)
+ * - "server": Server DataModel - query live game state (only during play)
+ * 
+ * Note: Client context exists internally but is not exposed (no HTTP access).
  */
 
+import { StringEnum } from "@mariozechner/pi-ai";
 import type { CustomToolFactory } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
+import * as net from "node:net";
 
+// Configuration
 const MCP_PORT = 44755;
 const MCP_URL = `http://127.0.0.1:${MCP_PORT}/proxy`;
-const REQUEST_TIMEOUT_MS = 30000;
+
+// Timeouts (ms)
+const REQUEST_TIMEOUT_MS = 30000;       // How long to wait for Studio response
+const SOCKET_CHECK_TIMEOUT_MS = 1000;   // TCP connection check timeout
+const SERVER_START_TIMEOUT_MS = 10000;  // How long to wait for server script
+const SERVER_READY_RETRIES = 10;        // Retry count for server readiness
+const SERVER_READY_INTERVAL_MS = 500;   // Delay between readiness checks
+
+type Context = "edit" | "server" | "any";
 
 interface McpRequest {
 	id: string;
+	context?: Context;
 	args: {
-		RunCode?: { command: string };
-		InsertModel?: { query: string };
+		RunCode: { command: string };
 	};
 }
 
 interface McpResponse {
 	id: string;
 	response: string;
+	context?: string;
 }
 
 interface RunCodeDetails {
 	code: string;
+	context?: string;
 	output?: string;
 	error?: string;
 }
 
-interface InsertModelDetails {
-	query: string;
-	modelName?: string;
-	error?: string;
-}
-
 async function isServerRunning(): Promise<boolean> {
-	// Check if port is listening by attempting a TCP connection
-	const net = await import("node:net");
 	return new Promise((resolve) => {
 		const socket = net.createConnection({ port: MCP_PORT, host: "127.0.0.1" });
-		socket.setTimeout(1000);
+		socket.setTimeout(SOCKET_CHECK_TIMEOUT_MS);
 		socket.on("connect", () => {
 			socket.destroy();
 			resolve(true);
@@ -61,9 +71,10 @@ async function isServerRunning(): Promise<boolean> {
 	});
 }
 
-async function sendMcpRequest(args: McpRequest["args"]): Promise<string> {
+async function sendMcpRequest(args: McpRequest["args"], context: Context = "any"): Promise<McpResponse> {
 	const request: McpRequest = {
 		id: randomUUID(),
+		context,
 		args,
 	};
 
@@ -85,11 +96,16 @@ async function sendMcpRequest(args: McpRequest["args"]): Promise<string> {
 		}
 
 		const data = (await response.json()) as McpResponse;
-		return data.response;
+		return data;
 	} catch (error) {
 		clearTimeout(timeout);
 		if (error instanceof Error && error.name === "AbortError") {
-			throw new Error("Request timed out. Is Studio connected to the MCP plugin?");
+			throw new Error(
+				"Request timed out. Studio may not be connected.\n" +
+				"• Is Studio running with your project open?\n" +
+				"• Check Studio Output for '[MCP Plugin] Connected'\n" +
+				"• For server context: press Play first"
+			);
 		}
 		throw error;
 	}
@@ -102,20 +118,24 @@ const factory: CustomToolFactory = (pi) => {
 		}
 
 		// Try to start the server
-		const result = await pi.exec("./scripts/start-mcp-server.sh", ["start"], { timeout: 10000 });
+		const result = await pi.exec("./scripts/start-mcp-server.sh", ["start"], { timeout: SERVER_START_TIMEOUT_MS });
 		if (result.code !== 0) {
 			throw new Error(`Failed to start MCP server: ${result.stderr || result.stdout}`);
 		}
 
 		// Wait for server to be ready
-		for (let i = 0; i < 10; i++) {
+		for (let i = 0; i < SERVER_READY_RETRIES; i++) {
 			if (await isServerRunning()) {
 				return;
 			}
-			await new Promise((resolve) => setTimeout(resolve, 500));
+			await new Promise((resolve) => setTimeout(resolve, SERVER_READY_INTERVAL_MS));
 		}
 
-		throw new Error("MCP server started but not responding");
+		throw new Error(
+			"MCP server started but not responding.\n" +
+			"• Check if bin/rbx-studio-mcp is running: ps aux | grep rbx-studio-mcp\n" +
+			"• Try restarting: ./scripts/start-mcp-server.sh restart"
+		)
 	}
 
 	return [
@@ -123,36 +143,42 @@ const factory: CustomToolFactory = (pi) => {
 			name: "studio_run_code",
 			label: "Studio Run Code",
 			description:
-				"For debugging and querying only. Use when user says 'live', 'in Studio', 'query', 'inspect', or 'check'. Do NOT use to create game objects - write .luau scripts in src/ instead.",
+				"Execute Luau code in Studio. Automatically targets whichever context is available (edit mode or server during play). Use 'context' parameter to target specific: 'edit', 'server', or 'any' (default).",
 			parameters: Type.Object({
 				code: Type.String({ description: "Luau code to execute in Studio" }),
+				context: Type.Optional(StringEnum(["edit", "server", "any"] as const, { 
+					description: "Target context: 'any' (default, auto-detect), 'edit', or 'server'" 
+				})),
 			}),
 
 			async execute(_toolCallId, params) {
-				const { code } = params as { code: string };
+				const { code, context = "any" } = params as { code: string; context?: Context };
 
 				try {
 					await ensureServerRunning();
-					const output = await sendMcpRequest({ RunCode: { command: code } });
+					const response = await sendMcpRequest({ RunCode: { command: code } }, context);
+					const output = response.response || "(no output)";
+					const respondedContext = response.context;
 
 					return {
-						content: [{ type: "text", text: output || "(no output)" }],
-						details: { code, output } as RunCodeDetails,
+						content: [{ type: "text", text: respondedContext ? `[${respondedContext}] ${output}` : output }],
+						details: { code, context: respondedContext, output } as RunCodeDetails,
 					};
 				} catch (error) {
 					const errorMsg = error instanceof Error ? error.message : String(error);
 					return {
 						content: [{ type: "text", text: `Error: ${errorMsg}` }],
-						details: { code, error: errorMsg } as RunCodeDetails,
+						details: { code, context, error: errorMsg } as RunCodeDetails,
 					};
 				}
 			},
 
 			renderCall(args, theme) {
-				const code = (args as { code?: string }).code || "";
-				const preview = code.length > 60 ? code.slice(0, 60) + "..." : code;
+				const { code, context } = args as { code?: string; context?: string };
+				const preview = (code || "").length > 50 ? (code || "").slice(0, 50) + "..." : (code || "");
+				const ctxLabel = context && context !== "any" ? `[${context}] ` : "";
 				return new Text(
-					theme.fg("toolTitle", theme.bold("studio_run_code ")) + theme.fg("dim", preview),
+					theme.fg("toolTitle", theme.bold("studio_run_code ")) + theme.fg("accent", ctxLabel) + theme.fg("dim", preview),
 					0,
 					0
 				);
@@ -165,65 +191,13 @@ const factory: CustomToolFactory = (pi) => {
 					return new Text(theme.fg("error", `Error: ${details.error}`), 0, 0);
 				}
 
+				const ctxPrefix = details?.context ? `[${details.context}] ` : "";
 				const output = details?.output || "(no output)";
 				const lines = output.split("\n");
 				const preview = expanded ? output : lines.slice(0, 5).join("\n");
 				const suffix = !expanded && lines.length > 5 ? `\n${theme.fg("dim", `... ${lines.length - 5} more lines`)}` : "";
 
-				return new Text(theme.fg("success", "✓ ") + theme.fg("toolOutput", preview) + suffix, 0, 0);
-			},
-		},
-
-		{
-			name: "studio_insert_model",
-			label: "Studio Insert Model",
-			description:
-				"Insert a model from Roblox marketplace into the current Studio session. Searches by query and inserts the first result.",
-			parameters: Type.Object({
-				query: Type.String({ description: "Search query for the marketplace model" }),
-			}),
-
-			async execute(_toolCallId, params) {
-				const { query } = params as { query: string };
-
-				try {
-					await ensureServerRunning();
-					const modelName = await sendMcpRequest({ InsertModel: { query } });
-
-					return {
-						content: [{ type: "text", text: `Inserted model: ${modelName}` }],
-						details: { query, modelName } as InsertModelDetails,
-					};
-				} catch (error) {
-					const errorMsg = error instanceof Error ? error.message : String(error);
-					return {
-						content: [{ type: "text", text: `Error: ${errorMsg}` }],
-						details: { query, error: errorMsg } as InsertModelDetails,
-					};
-				}
-			},
-
-			renderCall(args, theme) {
-				const query = (args as { query?: string }).query || "";
-				return new Text(
-					theme.fg("toolTitle", theme.bold("studio_insert_model ")) + theme.fg("accent", `"${query}"`),
-					0,
-					0
-				);
-			},
-
-			renderResult(result, _options, theme) {
-				const details = result.details as InsertModelDetails | undefined;
-
-				if (details?.error) {
-					return new Text(theme.fg("error", `Error: ${details.error}`), 0, 0);
-				}
-
-				return new Text(
-					theme.fg("success", "✓ Inserted ") + theme.fg("accent", details?.modelName || "model"),
-					0,
-					0
-				);
+				return new Text(theme.fg("success", "✓ ") + theme.fg("accent", ctxPrefix) + theme.fg("toolOutput", preview) + suffix, 0, 0);
 			},
 		},
 	];

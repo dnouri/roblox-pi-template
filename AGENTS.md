@@ -26,6 +26,29 @@ Use `write` to create new `.luau` files. Use `edit` to modify existing ones. Roj
 | "Fix the scoring bug" | `edit` → `src/server/ScorePoints.server.luau` |
 | "What parts are in workspace?" | `studio_run_code` |
 
+### studio_run_code Contexts
+
+The tool supports different contexts for querying Studio state:
+
+| Context | When to use |
+|---------|-------------|
+| `any` (default) | Auto-detect - uses server if playing, edit otherwise |
+| `edit` | Query the static scene |
+| `server` | Query live game state - players, spawned objects, runtime values |
+
+**Examples:**
+```luau
+-- Check what's in workspace (auto-detect context)
+studio_run_code with code: "return workspace:GetChildren()"
+
+-- Count live players during play mode
+studio_run_code with code: "return #game:GetService('Players'):GetPlayers()" and context: "server"
+```
+
+**Output format:** Results are prefixed with the responding context: `[server] ...` or `[edit] ...`
+
+**Troubleshooting:** See `.pi/tools/studio-mcp/README.md` for setup, protocol details, and error resolution.
+
 ## File Locations
 
 | Location | Script Type | Runs On |
@@ -46,7 +69,7 @@ Load a skill with `read` when you need detailed instructions for that workflow.
 | `lune` | Run Luau scripts outside Studio (CI/CD, automation) |
 | `roblox-cloud` | Publish, manage datastores, send cross-server messages |
 | `upload-assets` | Upload images, sounds, models to Roblox |
-| `use-assets` | Load models by AssetId at runtime |
+| `use-assets` | Load models by AssetId at runtime (includes marketplace search) |
 
 ## Common Patterns
 
