@@ -3,7 +3,10 @@
   "tree": {
     "$className": "DataModel",
     "ServerScriptService": {
-      "$path": "src/server"
+      "$path": "src/server",
+      "$properties": {
+        "LoadStringEnabled": true
+      }
     },
     "ReplicatedStorage": {
       "Shared": { "$path": "src/shared" }

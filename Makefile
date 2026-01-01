@@ -12,7 +12,7 @@ WALLY_VERSION    := 0.3.2
 
 # MCP Server (fork with Linux support and --http-only mode)
 MCP_SERVER_REPO    := dnouri/studio-rust-mcp-server
-MCP_SERVER_VERSION := 0.2.2
+MCP_SERVER_VERSION := 0.2.17
 
 # Plugin installation directory (auto-detected or override in .env)
 -include .env
@@ -96,12 +96,9 @@ else
 endif
 
 # MCP Plugin (download from same release)
-bin/MCPStudioPlugin.rbxm: bin/rojo
+bin/MCPStudioPlugin.rbxm:
 	@mkdir -p bin
-	@rm -rf /tmp/mcp-plugin-build
-	git clone --depth 1 https://github.com/$(MCP_SERVER_REPO).git /tmp/mcp-plugin-build
-	cd /tmp/mcp-plugin-build/plugin && $(CURDIR)/bin/rojo build -o $(CURDIR)/bin/MCPStudioPlugin.rbxm
-	@rm -rf /tmp/mcp-plugin-build
+	curl -sL https://github.com/$(MCP_SERVER_REPO)/releases/download/v$(MCP_SERVER_VERSION)/MCPStudioPlugin.rbxm -o bin/MCPStudioPlugin.rbxm
 
 # Plugin installation
 install-rojo-plugin: bin/rojo
