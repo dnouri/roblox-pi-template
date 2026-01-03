@@ -103,4 +103,18 @@ Config.LavaRadius = 15
 return Config
 ```
 
+## Modifying Game State via MCP
+
+With `MCPBridge.server.luau` installed, `require()` works transparently during play mode:
+
+```luau
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerDataManager = require(ReplicatedStorage.Shared.PlayerDataManager)
+
+PlayerDataManager.setCoins({_playerRef = "PlayerName"}, 5000)  -- Modifies real game state
+local coins = PlayerDataManager.getCoins({_playerRef = "PlayerName"})  -- Reads real game state
+```
+
+Use `{_playerRef = "Name"}` for Player arguments (Player objects can't cross VM boundary).
+
 

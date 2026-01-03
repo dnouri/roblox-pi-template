@@ -12,7 +12,7 @@ WALLY_VERSION    := 0.3.2
 
 # MCP Server (fork with Linux support and --http-only mode)
 MCP_SERVER_REPO    := dnouri/studio-rust-mcp-server
-MCP_SERVER_VERSION := 0.2.17
+MCP_SERVER_VERSION := 0.2.22
 
 # Plugin installation directory (auto-detected or override in .env)
 -include .env
