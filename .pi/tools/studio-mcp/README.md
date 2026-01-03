@@ -7,6 +7,7 @@ Execute Luau code in Roblox Studio from pi-agent.
 1. **MCP Server**: `bin/rbx-studio-mcp` (compiled Rust binary)
 2. **Studio Plugin**: `MCPStudioPlugin.rbxm` installed in Studio's Plugins folder
 3. **LoadStringEnabled**: Set in `default.project.json` for server-side execution
+4. **MCPBridge**: `src/server/MCPBridge.server.luau` for game state access
 
 ## Usage
 
@@ -28,6 +29,21 @@ studio_run_code with code: "return workspace:GetChildren()"
 # Count players in running game
 studio_run_code with code: "return #game:GetService('Players'):GetPlayers()" and context: "server"
 ```
+
+### Accessing Game Module State
+
+With `MCPBridge.server.luau` installed, `require()` works transparently:
+
+```luau
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerDataManager = require(ReplicatedStorage.Shared.PlayerDataManager)
+
+-- Read and modify game state directly
+local coins = PlayerDataManager.getCoins({_playerRef = "PlayerName"})
+PlayerDataManager.setCoins({_playerRef = "PlayerName"}, 5000)
+```
+
+Use `{_playerRef = "Name"}` for Player arguments (can't cross VM boundary).
 
 ### Searching & Inserting Marketplace Models
 
