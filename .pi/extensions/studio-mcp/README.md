@@ -1,4 +1,4 @@
-# Studio MCP Tool
+# Studio MCP Extension
 
 Execute Luau code in Roblox Studio from pi-agent.
 
