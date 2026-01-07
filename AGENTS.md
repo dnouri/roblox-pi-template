@@ -47,7 +47,7 @@ studio_run_code with code: "return #game:GetService('Players'):GetPlayers()" and
 
 **Output format:** Results are prefixed with the responding context: `[server] ...` or `[edit] ...`
 
-**Troubleshooting:** See `.pi/tools/studio-mcp/README.md` for setup, protocol details, and error resolution.
+**Troubleshooting:** See `.pi/extensions/studio-mcp/README.md` for setup, protocol details, and error resolution.
 
 ## File Locations
 

@@ -1,5 +1,5 @@
 /**
- * Studio MCP Tool - Live interaction with Roblox Studio
+ * Studio MCP Extension - Live interaction with Roblox Studio
  *
  * Provides studio_run_code tool to execute Luau code in the running Studio session.
  *
@@ -15,7 +15,7 @@
  */
 
 import { StringEnum } from "@mariozechner/pi-ai";
-import type { CustomToolFactory } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
@@ -111,7 +111,7 @@ async function sendMcpRequest(args: McpRequest["args"], context: Context = "any"
 	}
 }
 
-const factory: CustomToolFactory = (pi) => {
+export default function (pi: ExtensionAPI) {
 	async function ensureServerRunning(): Promise<void> {
 		if (await isServerRunning()) {
 			return;
@@ -135,72 +135,68 @@ const factory: CustomToolFactory = (pi) => {
 			"MCP server started but not responding.\n" +
 			"• Check if bin/rbx-studio-mcp is running: ps aux | grep rbx-studio-mcp\n" +
 			"• Try restarting: ./scripts/start-mcp-server.sh restart"
-		)
+		);
 	}
 
-	return [
-		{
-			name: "studio_run_code",
-			label: "Studio Run Code",
-			description:
-				"Execute Luau code in Studio. Automatically targets whichever context is available (edit mode or server during play). Use 'context' parameter to target specific: 'edit', 'server', or 'any' (default).",
-			parameters: Type.Object({
-				code: Type.String({ description: "Luau code to execute in Studio" }),
-				context: Type.Optional(StringEnum(["edit", "server", "any"] as const, { 
-					description: "Target context: 'any' (default, auto-detect), 'edit', or 'server'" 
-				})),
-			}),
+	pi.registerTool({
+		name: "studio_run_code",
+		label: "Studio Run Code",
+		description:
+			"Execute Luau code in Studio. Automatically targets whichever context is available (edit mode or server during play). Use 'context' parameter to target specific: 'edit', 'server', or 'any' (default).",
+		parameters: Type.Object({
+			code: Type.String({ description: "Luau code to execute in Studio" }),
+			context: Type.Optional(StringEnum(["edit", "server", "any"] as const, { 
+				description: "Target context: 'any' (default, auto-detect), 'edit', or 'server'" 
+			})),
+		}),
 
-			async execute(_toolCallId, params) {
-				const { code, context = "any" } = params as { code: string; context?: Context };
+		async execute(_toolCallId, params, _onUpdate, _ctx, _signal) {
+			const { code, context = "any" } = params as { code: string; context?: Context };
 
-				try {
-					await ensureServerRunning();
-					const response = await sendMcpRequest({ RunCode: { command: code } }, context);
-					const output = response.response || "(no output)";
-					const respondedContext = response.context;
+			try {
+				await ensureServerRunning();
+				const response = await sendMcpRequest({ RunCode: { command: code } }, context);
+				const output = response.response || "(no output)";
+				const respondedContext = response.context;
 
-					return {
-						content: [{ type: "text", text: respondedContext ? `[${respondedContext}] ${output}` : output }],
-						details: { code, context: respondedContext, output } as RunCodeDetails,
-					};
-				} catch (error) {
-					const errorMsg = error instanceof Error ? error.message : String(error);
-					return {
-						content: [{ type: "text", text: `Error: ${errorMsg}` }],
-						details: { code, context, error: errorMsg } as RunCodeDetails,
-					};
-				}
-			},
-
-			renderCall(args, theme) {
-				const { code, context } = args as { code?: string; context?: string };
-				const preview = (code || "").length > 50 ? (code || "").slice(0, 50) + "..." : (code || "");
-				const ctxLabel = context && context !== "any" ? `[${context}] ` : "";
-				return new Text(
-					theme.fg("toolTitle", theme.bold("studio_run_code ")) + theme.fg("accent", ctxLabel) + theme.fg("dim", preview),
-					0,
-					0
-				);
-			},
-
-			renderResult(result, { expanded }, theme) {
-				const details = result.details as RunCodeDetails | undefined;
-
-				if (details?.error) {
-					return new Text(theme.fg("error", `Error: ${details.error}`), 0, 0);
-				}
-
-				const ctxPrefix = details?.context ? `[${details.context}] ` : "";
-				const output = details?.output || "(no output)";
-				const lines = output.split("\n");
-				const preview = expanded ? output : lines.slice(0, 5).join("\n");
-				const suffix = !expanded && lines.length > 5 ? `\n${theme.fg("dim", `... ${lines.length - 5} more lines`)}` : "";
-
-				return new Text(theme.fg("success", "✓ ") + theme.fg("accent", ctxPrefix) + theme.fg("toolOutput", preview) + suffix, 0, 0);
-			},
+				return {
+					content: [{ type: "text", text: respondedContext ? `[${respondedContext}] ${output}` : output }],
+					details: { code, context: respondedContext, output } as RunCodeDetails,
+				};
+			} catch (error) {
+				const errorMsg = error instanceof Error ? error.message : String(error);
+				return {
+					content: [{ type: "text", text: `Error: ${errorMsg}` }],
+					details: { code, context, error: errorMsg } as RunCodeDetails,
+				};
+			}
 		},
-	];
-};
 
-export default factory;
+		renderCall(args, theme) {
+			const { code, context } = args as { code?: string; context?: string };
+			const preview = (code || "").length > 50 ? (code || "").slice(0, 50) + "..." : (code || "");
+			const ctxLabel = context && context !== "any" ? `[${context}] ` : "";
+			return new Text(
+				theme.fg("toolTitle", theme.bold("studio_run_code ")) + theme.fg("accent", ctxLabel) + theme.fg("dim", preview),
+				0,
+				0
+			);
+		},
+
+		renderResult(result, { expanded }, theme) {
+			const details = result.details as RunCodeDetails | undefined;
+
+			if (details?.error) {
+				return new Text(theme.fg("error", `Error: ${details.error}`), 0, 0);
+			}
+
+			const ctxPrefix = details?.context ? `[${details.context}] ` : "";
+			const output = details?.output || "(no output)";
+			const lines = output.split("\n");
+			const preview = expanded ? output : lines.slice(0, 5).join("\n");
+			const suffix = !expanded && lines.length > 5 ? `\n${theme.fg("dim", `... ${lines.length - 5} more lines`)}` : "";
+
+			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", ctxPrefix) + theme.fg("toolOutput", preview) + suffix, 0, 0);
+		},
+	});
+}
