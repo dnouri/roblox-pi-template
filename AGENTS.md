@@ -47,6 +47,8 @@ studio_run_code with code: "return #game:GetService('Players'):GetPlayers()" and
 
 **Output format:** Results are prefixed with the responding context: `[server] ...` or `[edit] ...`
 
+**⚠️ VM Isolation:** Code runs in plugin VM, not game VM. Use MCPBridge for game state (see below).
+
 **Troubleshooting:** See `.pi/extensions/studio-mcp/README.md` for setup, protocol details, and error resolution.
 
 ## File Locations
@@ -105,6 +107,10 @@ return Config
 
 ## Modifying Game State via MCP
 
+**CRITICAL: Read `src/server/MCPBridge.server.luau` before debugging data issues!**
+
+Roblox plugins (including MCP) run in a **separate Luau VM** from game scripts. Without the bridge, `require()` returns different module instances - you can't access game state.
+
 With `MCPBridge.server.luau` installed, `require()` works transparently during play mode:
 
 ```luau
@@ -116,5 +122,21 @@ local coins = PlayerDataManager.getCoins({_playerRef = "PlayerName"})  -- Reads 
 ```
 
 Use `{_playerRef = "Name"}` for Player arguments (Player objects can't cross VM boundary).
+
+### What MCPBridge CAN'T Do
+
+The bridge proxies method calls into the game's VM, but:
+
+| Works | Doesn't Work |
+|-------|--------------|
+| Calling module functions | Direct table manipulation |
+| Reading return values | Resetting module-level caches |
+| DataStore operations | Preventing PlayerRemoving saves |
+
+**To reset player data completely:**
+1. Reset DataStore directly (works - crosses to Roblox servers)
+2. But in-memory module state persists until player rejoins
+3. When player leaves, `PlayerRemoving` saves the OLD in-memory data
+4. **Solution:** Reset DataStore, then kick player to force fresh load
 
 
