@@ -18,6 +18,14 @@ Before using a new Roblox API, you must take a look at docs in `docs/creator-doc
 
 Use `write` to create new `.luau` files. Use `edit` to modify existing ones. Rojo syncs them to Studio automatically.
 
+> ⚠️ **Rojo Does NOT Hot-Reload During Play**
+> 
+> Rojo syncs files to Studio immediately, but changes do NOT take effect in a running game:
+> - Scripts are cached on first `require()` - edits won't be seen until restart
+> - New scripts won't exist in the running VM until restart
+> 
+> **After ANY code changes:** Tell the user to restart the game (Stop → Play) before testing.
+
 `studio_run_code` is for debugging and inspection only (e.g., "what's in workspace?", "check player position").
 
 | User says | Tool |
