@@ -113,6 +113,45 @@ Config.LavaRadius = 15
 return Config
 ```
 
+## Common Pitfalls
+
+### Model:PivotTo() vs Direct CFrame Assignment
+
+`Model:PivotTo(cf)` positions the model's **pivot point** at `cf`, not the PrimaryPart. Imported meshes (GLB, FBX) often have pivot offsets from their 3D modeling tool.
+
+**Symptoms:** Model appears in wrong position/rotation despite correct CFrame math. Rotation animations look wrong. Static tests with `part.CFrame` work but animated code with `PivotTo` doesn't.
+
+**Diagnosis:** If your CFrame math is correct but the model is off, you're likely hitting pivot offset issues.
+
+```luau
+-- ❌ UNPREDICTABLE: Pivot may be offset from PrimaryPart
+model:PivotTo(targetCFrame)
+
+-- ✅ PREDICTABLE: Directly set the part's CFrame
+local part = model:FindFirstChildWhichIsA("BasePart", true)
+part.CFrame = targetCFrame
+```
+
+**When PivotTo is fine:** Placing models in the world where rough positioning is acceptable.
+
+**When to use direct CFrame:** Animations, ViewportFrames, any precise orientation work.
+
+### Imported Model Orientation
+
+3D models from external tools (Blender, TRELLIS, etc.) often have non-standard orientations. Document the model's actual geometry when you figure it out:
+
+```luau
+--[[
+    Fish Model Geometry (from GLB export):
+    - Bounding box: X=0.46, Y=0.58, Z=1.0 (Z is longest = head-to-tail)
+    - Default orientation: nose points along -Y axis (not -Z as typical)
+    - Required correction: 90°X + 180°Z roll to align nose to +Z
+]]
+Config.ModelCorrection = CFrame.Angles(math.rad(90), 0, math.rad(180))
+```
+
+**Diagnosis approach:** Create visual test variants with different rotations, place them in front of the player, iterate until correct. Don't guess - test visually.
+
 ## Modifying Game State via MCP
 
 **CRITICAL: Read `src/server/MCPBridge.server.luau` before debugging data issues!**
