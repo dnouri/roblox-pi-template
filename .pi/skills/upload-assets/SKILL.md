@@ -53,9 +53,57 @@ Uploads are async. Check completion:
 
 The response includes `assetId` when done.
 
+## ⚠️ Grant Experience Permissions
+
+**Uploaded assets are private by default.** Other players cannot access them until you grant your experience permission to use them.
+
+### Why This Matters
+
+When you upload via Open Cloud API:
+- Asset is owned by your **user account**
+- Only you can see/hear it in Studio and playtesting
+- Other players experience **nothing** in the published game
+
+### Grant Permissions via API
+
+Use the Asset Permissions API to grant your experience "Use" permission:
+
+```bash
+curl -X PATCH \
+  "https://apis.roblox.com/asset-permissions-api/v1/assets/permissions" \
+  -H "x-api-key: $ROBLOX_OPEN_CLOUD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subjectType": "Universe",
+    "subjectId": "YOUR_UNIVERSE_ID",
+    "action": "Use",
+    "requests": [
+      {"assetId": 123456789},
+      {"assetId": 987654321}
+    ]
+  }'
+```
+
+### API Key Requirements
+
+Your API key needs an **additional scope**:
+1. Go to Creator Dashboard → Credentials
+2. Edit your API key
+3. Add `asset-permissions` to Access Permissions
+4. Enable `Write` operation
+
+### Environment Variables
+
+Add to `.env`:
+```bash
+ROBLOX_UNIVERSE_ID=your-universe-id
+```
+
+Find your Universe ID in Game Settings → Basic Info, or from the URL when editing the game.
+
 ## Use Uploaded Assets in Game
 
-Once uploaded, store the AssetId and use it:
+Once uploaded and permissions granted, store the AssetId and use it:
 
 ```luau
 -- For images/decals
