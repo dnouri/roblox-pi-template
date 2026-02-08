@@ -214,7 +214,7 @@ local specFiles = findSpecFiles("./src")
 
 if #specFiles == 0 then
 	print("No spec files found in src/")
-	print("Create test files named *.spec.luau")
+	print("Create test files named *.spec.luau (see AGENTS.md 'Testing Patterns')")
 	process.exit(0)
 end
 

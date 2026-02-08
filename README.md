@@ -162,15 +162,17 @@ Pi uses [rbxcloud](https://github.com/Sleitnick/rbxcloud) to upload assets and g
 |---------|-------------|
 | `make setup` | Download tools + install plugins |
 | `make serve` | Start Rojo live sync |
+| `make test` | Run all tests (30s timeout) |
+| `make check` | Lint + format check |
+| `make fmt` | Auto-format code with StyLua |
 | `make build` | Build .rbxl file |
 | `make publish` | Publish to Roblox |
 | `make verify` | Check setup status |
-| `make lint` | Check code with Selene |
-| `make format` | Format code with StyLua |
 | `make mcp-start` | Start MCP server for live debugging |
 | `make mcp-stop` | Stop MCP server |
+| `make grant-asset-permissions` | Grant asset access to your experience |
 | `make setup-docs` | Download Roblox API docs |
-| `make setup-hooks` | Install pre-commit linting |
+| `make setup-hooks` | Install pre-commit hooks |
 
 ## 🛠️ Tools Included
 

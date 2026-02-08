@@ -1,31 +1,28 @@
 #!/bin/bash
-# Pre-commit hook: runs linting, format checks, and tests before each commit
+# Pre-commit hook: auto-format, lint, and test before each commit
 
 echo "Running pre-commit checks..."
 
-# Run lint and format check
-if ! make check; then
+# Auto-format staged files, then re-stage them
+make fmt 2>/dev/null
+git add -u src/ 2>/dev/null
+
+# Lint (no format check — we just formatted)
+if ! make lint; then
     echo ""
-    echo "❌ Lint/format checks failed!"
-    echo ""
-    echo "Fix the issues above, then try committing again."
-    echo "To format automatically: make format"
-    echo "To skip this check (not recommended): git commit --no-verify"
+    echo "❌ Lint failed! Fix the issues above, then try again."
+    echo "To skip: git commit --no-verify"
     exit 1
 fi
 
-echo "✓ Lint/format checks passed"
-echo ""
+echo "✓ Lint passed"
 
-# Run tests
+# Test
 if ! make test; then
     echo ""
-    echo "❌ Tests failed!"
-    echo ""
-    echo "Fix the failing tests, then try committing again."
-    echo "To skip this check (not recommended): git commit --no-verify"
+    echo "❌ Tests failed! Fix the failing tests, then try again."
+    echo "To skip: git commit --no-verify"
     exit 1
 fi
 
-echo ""
 echo "✓ All pre-commit checks passed"
