@@ -1,5 +1,6 @@
-.PHONY: all setup setup-tools setup-plugins serve build publish lint format check clean
+.PHONY: all setup setup-tools setup-plugins serve build publish lint fmt format check test clean
 .PHONY: mcp-start mcp-stop install-rojo-plugin install-mcp-plugin setup-docs verify setup-hooks
+.PHONY: grant-asset-permissions
 
 # Tool versions
 ROJO_VERSION     := 7.6.1
@@ -149,14 +150,20 @@ publish: build bin/rbxcloud
 		--api-key $(ROBLOX_OPEN_CLOUD_API_KEY)
 
 lint: bin/selene
-	./bin/selene src/
+	@# Exclude spec files (they use Lune test globals)
+	@find src -name "*.luau" ! -name "*.spec.luau" -print0 | xargs -0 ./bin/selene
 
-format: bin/stylua
-	./bin/stylua src/
+fmt: bin/stylua
+	@./bin/stylua src/
 
-check: bin/selene bin/stylua
-	./bin/selene src/
-	./bin/stylua --check src/
+format: fmt
+
+check: fmt bin/selene
+	@# Exclude spec files from linting (they use Lune test globals)
+	@find src -name "*.luau" ! -name "*.spec.luau" -print0 | xargs -0 ./bin/selene
+
+test: bin/lune
+	timeout 30s ./bin/lune run scripts/test.luau || { [ $$? -eq 124 ] && echo "ERROR: Tests timed out after 30 seconds" && exit 1; exit $$?; }
 
 # Documentation
 setup-docs: docs/creator-docs
@@ -170,6 +177,10 @@ docs/creator-docs:
 
 verify:
 	@./scripts/verify.sh
+
+# Grant asset permissions to the experience (fixes "other players can't see/hear assets")
+grant-asset-permissions:
+	@./scripts/grant-asset-permissions.sh
 
 setup-hooks:
 	git config core.hooksPath .githooks

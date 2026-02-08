@@ -27,3 +27,4 @@ Thumbs.db
 docs/creator-docs/
 # Uncomment if assets should not be tracked:
 tarmac-manifest.toml
+tmp/

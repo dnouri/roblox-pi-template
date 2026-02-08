@@ -18,15 +18,17 @@ Before using a new Roblox API, you must take a look at docs in `docs/creator-doc
 
 Use `write` to create new `.luau` files. Use `edit` to modify existing ones. Rojo syncs them to Studio automatically.
 
-> ⚠️ **Rojo Does NOT Hot-Reload During Play**
-> 
-> Rojo syncs files to Studio immediately, but changes do NOT take effect in a running game:
-> - Scripts are cached on first `require()` - edits won't be seen until restart
-> - New scripts won't exist in the running VM until restart
-> 
-> **After ANY code changes:** Tell the user to restart the game (Stop → Play) before testing.
-
 `studio_run_code` is for debugging and inspection only (e.g., "what's in workspace?", "check player position").
+
+## After Code Changes
+
+Rojo syncs files instantly, but a running game caches scripts on first `require()`.
+After ANY `edit` or `write` to `.luau` files:
+1. Tell the user to restart the game (Stop → Play)
+2. **Wait for the user to confirm** the game is running again
+3. Only then verify with `studio_run_code`
+
+Do NOT use `studio_run_code` to test changes without a restart — you'll be testing stale code.
 
 | User says | Tool |
 |-----------|------|
@@ -56,6 +58,8 @@ studio_run_code with code: "return #game:GetService('Players'):GetPlayers()" and
 **Output format:** Results are prefixed with the responding context: `[server] ...` or `[edit] ...`
 
 **⚠️ VM Isolation:** Code runs in plugin VM, not game VM. Use MCPBridge for game state (see below).
+
+**⚠️ Timeouts:** If `studio_run_code` returns "Request timed out", Studio is not connected. Do NOT retry — ask the user to open Studio and connect first.
 
 **Troubleshooting:** See `.pi/extensions/studio-mcp/README.md` for setup, protocol details, and error resolution.
 
