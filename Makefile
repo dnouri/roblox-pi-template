@@ -150,7 +150,7 @@ publish: build bin/rbxcloud
 		--api-key $(ROBLOX_OPEN_CLOUD_API_KEY)
 
 lint: bin/selene
-	@# Exclude spec files (they use Lune test globals)
+	@# Exclude spec files (they use Lune test globals not known to selene)
 	@find src -name "*.luau" ! -name "*.spec.luau" -print0 | xargs -0 ./bin/selene
 
 fmt: bin/stylua
@@ -158,9 +158,8 @@ fmt: bin/stylua
 
 format: fmt
 
-check: fmt bin/selene
-	@# Exclude spec files from linting (they use Lune test globals)
-	@find src -name "*.luau" ! -name "*.spec.luau" -print0 | xargs -0 ./bin/selene
+check: lint
+	@./bin/stylua --check src/
 
 test: bin/lune
 	timeout 30s ./bin/lune run scripts/test.luau || { [ $$? -eq 124 ] && echo "ERROR: Tests timed out after 30 seconds" && exit 1; exit $$?; }

@@ -1,5 +1,21 @@
 # Roblox Development with Pi-Coding-Agent
 
+## Development Commands
+
+Run these from the project root:
+
+| Command | Purpose |
+|---------|---------|
+| `make test` | Run all tests (30s timeout) |
+| `make check` | Lint + format check (runs before commits) |
+| `make serve` | Start Rojo live sync to Studio |
+| `make publish` | Build and publish to Roblox (requires `.env`) |
+| `make mcp-start` | Start MCP server for `studio_run_code` |
+| `make mcp-stop` | Stop MCP server |
+| `make setup` | Install all tools and plugins |
+
+Tests run automatically on commit via git hooks. If tests fail, the commit is rejected.
+
 ## Before Making Changes
 
 Read existing scripts in `src/` to understand how they work. Integrate with existing patterns.
@@ -84,6 +100,40 @@ Load a skill with `read` when you need detailed instructions for that workflow.
 | `roblox-cloud` | Publish, manage datastores, send cross-server messages |
 | `upload-assets` | Upload images, sounds, models to Roblox |
 | `use-assets` | Load models by AssetId at runtime (includes marketplace search) |
+
+## Testing Patterns
+
+### Test File Structure
+Tests use **global functions** injected by the test runner, NOT the `return function(describe, it, expect)` pattern:
+
+```lua
+-- ✅ CORRECT: Use globals directly
+local MyModule = require("./MyModule")
+
+describe("MyModule", function()
+    it("should do something", function()
+        assertEqual(MyModule.foo(), "bar")
+    end)
+end)
+
+-- ❌ WRONG: Don't wrap in a returned function
+return function(describe, it, expect)  -- NO!
+    ...
+end
+```
+
+Available test globals: `describe`, `it`, `assertEqual`, `assertTrue`, `assertFalse`, `assertNil`, `assertNotNil`
+
+### Require Paths in Tests
+Use relative string paths, not `script.Parent`:
+
+```lua
+-- ✅ CORRECT for tests (lune compatible)
+local MyModule = require("./MyModule")
+
+-- ❌ WRONG for tests (script.Parent is nil in lune)
+local MyModule = require(script.Parent.MyModule)
+```
 
 ## Common Patterns
 

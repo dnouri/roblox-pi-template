@@ -11,21 +11,27 @@ description: Use this to add models, decorations, and props to your game. Store 
 - No need to save place files to persist models
 - Assets load directly from Roblox's CDN at runtime
 
-**How it works:** Store AssetIds in Luau config files, then load models at runtime using `InsertService:LoadAsset()`.
+**How it works:** Store AssetIds in Luau config files, then load models at runtime using `AssetService:LoadAssetAsync()`.
 
 **Works with:** Your own uploaded assets, group assets, shared assets, and free marketplace models.
 
+## Required Setting for Third-Party Assets
+
+To load free marketplace assets (assets you don't own), you must enable:
+
+**Home → Game Settings → Security → "Allow Loading Third Party Assets"**
+
+Without this setting, only assets owned by the game creator will load.
+
 ## Asset Access Permissions
 
-| Asset Type | LoadAsset | Requires Setting? |
-|------------|-----------|-------------------|
+| Asset Type | Works? | Requires Setting? |
+|------------|--------|-------------------|
 | **Your own assets** | ✅ Yes | No |
 | **Your group's assets** | ✅ Yes | No |
 | **Assets shared with you** | ✅ Yes | No |
 | **Roblox-owned assets** | ✅ Yes | No |
-| **Free marketplace (third-party)** | ✅ Yes | Yes* |
-
-*Enable in **Game Settings > Security > "Allow Loading Third Party Assets"**
+| **Free marketplace (third-party)** | ✅ Yes | **Yes** — enable "Allow Loading Third Party Assets" |
 
 ## Workflow
 
@@ -91,18 +97,19 @@ return {
 ### Load at Runtime
 
 ```lua
-local InsertService = game:GetService("InsertService")
+local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AssetIds = require(ReplicatedStorage.Shared.AssetIds)
 
 local function loadAsset(assetId: number): Model?
     local success, result = pcall(function()
-        return InsertService:LoadAsset(assetId)
+        return AssetService:LoadAssetAsync(assetId)
     end)
     
     if success then
         local model = result:GetChildren()[1]
+        result:Destroy()  -- Clean up container
         return model
     else
         warn("Failed to load asset:", assetId, result)
@@ -121,14 +128,16 @@ end
 
 | Method | Purpose | Context |
 |--------|---------|---------|
+| `AssetService:LoadAssetAsync(assetId)` | **Primary method** — load assets at runtime | Server |
 | `InsertService:GetFreeModelsAsync(query, page)` | Search marketplace | Server |
-| `InsertService:LoadAsset(assetId)` | Load at runtime | Server |
-| `AssetService:LoadAssetAsync(assetId)` | Modern LoadAsset alternative | Server |
-| `game:GetObjects("rbxassetid://ID")` | Preview/load in Studio | Studio/Plugin |
+| `game:GetObjects("rbxassetid://ID")` | Preview/inspect in Studio | Studio/Plugin only |
+
+**Note:** `InsertService:LoadAsset()` only works for assets you own. Use `AssetService:LoadAssetAsync()` for marketplace assets.
 
 ## Tips
 
+- **Enable the setting** — "Allow Loading Third Party Assets" is required for marketplace assets
 - **Own assets are always accessible** — no special settings needed
-- **Preview in Studio first** — use `game:GetObjects()` before committing IDs
+- **Preview in Studio first** — use `game:GetObjects()` via `studio_run_code` before committing IDs
 - **Cache loaded models** — clone from a template instead of reloading
 - **Handle failures gracefully** — always wrap in pcall
