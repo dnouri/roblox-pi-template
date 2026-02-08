@@ -45,29 +45,42 @@ Use `--version-type saved` to save without publishing.
 
 ### DataStore Operations
 
-List datastores:
+List all datastores in a universe:
+```bash
+./bin/rbxcloud datastore list-stores \
+    --api-key $ROBLOX_OPEN_CLOUD_API_KEY \
+    --universe-id $ROBLOX_UNIVERSE_ID \
+    --limit 100
+```
+
+List keys in a datastore (`--limit` is required):
 ```bash
 ./bin/rbxcloud datastore list \
     --api-key $ROBLOX_OPEN_CLOUD_API_KEY \
-    --universe-id $ROBLOX_UNIVERSE_ID
-```
-
-List keys in a datastore:
-```bash
-./bin/rbxcloud datastore entries list \
-    --api-key $ROBLOX_OPEN_CLOUD_API_KEY \
     --universe-id $ROBLOX_UNIVERSE_ID \
-    --datastore-name PlayerData
+    --datastore-name PlayerData \
+    --limit 100
 ```
 
-Get a value:
+Get a value by key:
 ```bash
-./bin/rbxcloud datastore entries get \
+./bin/rbxcloud datastore get \
     --api-key $ROBLOX_OPEN_CLOUD_API_KEY \
     --universe-id $ROBLOX_UNIVERSE_ID \
     --datastore-name PlayerData \
-    --entry-id player_123
+    --key player_123
 ```
+
+Delete an entry:
+```bash
+./bin/rbxcloud datastore delete \
+    --api-key $ROBLOX_OPEN_CLOUD_API_KEY \
+    --universe-id $ROBLOX_UNIVERSE_ID \
+    --datastore-name PlayerData \
+    --key player_123
+```
+
+**Available subcommands:** `list-stores`, `list`, `get`, `set`, `increment`, `delete`, `list-versions`, `get-version`. Run `./bin/rbxcloud datastore --help` for details.
 
 ### Messaging (Cross-Server)
 
